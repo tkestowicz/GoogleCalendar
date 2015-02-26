@@ -72,11 +72,9 @@ namespace GoogleCalendar.Domain
         public IReadOnlyCollection<EventProjection> DailyResults { get; internal set; }
     }
 
-    public class Author { }
-
     public abstract class EventsQuery
     {
-        public Author CalendarOwner { get; set; }
+        public string CalendarOwnerId { get; set; }
     }
 
     public class YearlyEventsQuery : EventsQuery
