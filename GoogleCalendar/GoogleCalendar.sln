@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleCalendar.Domain", "GoogleCalendar.Domain\GoogleCalendar.Domain.csproj", "{FE1543ED-A105-4716-ABF8-72B58964C913}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleCalendar.Tests.Unit", "GoogleCalendar.Tests.Unit\GoogleCalendar.Tests.Unit.csproj", "{31698E56-F953-4DDE-B7A2-28C1919853A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE1543ED-A105-4716-ABF8-72B58964C913}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE1543ED-A105-4716-ABF8-72B58964C913}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE1543ED-A105-4716-ABF8-72B58964C913}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE1543ED-A105-4716-ABF8-72B58964C913}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31698E56-F953-4DDE-B7A2-28C1919853A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31698E56-F953-4DDE-B7A2-28C1919853A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31698E56-F953-4DDE-B7A2-28C1919853A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31698E56-F953-4DDE-B7A2-28C1919853A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

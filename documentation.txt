@@ -1,0 +1,131 @@
+The purpose of this project is to provide clone of the Google calendar.
+
+-----------------------
+Functional requirements
+-----------------------
+  * scheduling events: one-time / full day / recurring on different intervals (same intervals that Google is using)
+  * editing scheduled events (one-time events / event series / single event in a series)
+  * displaying events on a calendar control (both one-time events and event series infinitely in the future)
+  * sending reminder emails about upcoming tasks
+
+-------------------------
+Nonfunctional requiremets
+-------------------------
+  * 100-200 concurrent users
+  * implement weekly scheduling algorithm with unit tests (should contains all features that google's has)
+  * implement piece of code which gets a list of data for different calendar views (year, month, week, day)
+  * implement service which generates occurences of events in a series with unit tests
+  * provide domain classes (calendar, events, event series, scheduling)
+  * pay attention to naming classes/tests
+  * don't implement UI unless you have some extra time and major tasks are finished
+  *+ provide brief description about architecture and suggested technology stack
+  *+ provide database type and schema for events and event series
+  *+ consider when events are persisted in the data store and how they are retrieved for display in the UI
+  *+ consider what happens when event series has its schedule changed (see google calendar behavior) or when a single event in a series is edited
+
+-----------------------------
+Architecture and technologies
+-----------------------------
+I would split the whole system into 3 parts:
+  * Domain - with domain model, scheduling algorithms, etc.
+  * Application - with database model, services (presentation, scheduling, storage, reminder)
+  * UI - user interface (as a web client)
+
+I think that the following set of technologies should be enough to provide this application:
+  * .NET 4.5 & C# 5 (in case of scaling in the future)
+  * MongoDB
+  * Hangfire or Quartz.NET (for scheduling)
+  * Asp.NET MVC 5
+  * Bootstrap, knockoutjs, jquery (for UI)
+
+---------------------------
+Database choice and schema
+---------------------------
+I suggest to use document database (for example MongoDB) because it is effecient and seems to fit for this particular application (provides convinient way to model schema). We have concurrent users but each user has its own set of data which is not shared. It also seems that we will do small updates (within one document) rather than complex (within more than one document). The structure of the documents might be as follows:
+
+Author
+  {
+    Id : guid
+    Name : string
+    Culture : string
+    Timezone : string
+  }
+
+Event
+  {
+    AuthorId : guid
+    IsFullDay : bool
+    Name: string
+    Range:
+      {
+        From: datetime (utc)
+        To: datetime (utc)
+        NumberOfDays : int
+        NumberOfHours : int
+        Timezone: string
+        Culture: string
+      }
+    Repeatable : bool
+    EventSerieId : string
+  }
+
+EventSerie
+  {
+    Id : guid
+    Frequency: int
+    Range:
+    {
+      StartsAt: datetime (utc)
+      EndsAt:
+        {
+          Never: bool?
+          AfterTimes: int?
+          ParticularDate: datetime?
+        }
+      Timezone: string
+      Culture: string
+    }
+    WeeklyParams: 
+      {
+        Interval: int
+        Occurences: int
+      }
+    DailyParams:
+      {
+        Interval: int
+      }
+    MonthlyParams:
+      {
+        Interval: int
+        RepeatBy: int
+      }
+    YearlyParams:
+      {
+        Interval: int
+      }
+    Changes:
+      {
+        ParticularEvents: Event[]
+        SubSeries: [{
+          Event: Event
+          SubSerie : EventSerie
+        }]
+      }
+  }
+
+
+----------------
+Thougths & Ideas
+----------------
+ 
+1. Consider possible differences in the algorithm depending on a country if you find any.
+
+    The calendar should at least deal with timezones. That's why all date&time data stored in DB should use "Universal Time" and be converted into "Specific" before presentation. Culture should be also persisted in case the user scheduled an event then traveled to different timezone/culture and use local computer.
+    The default calendar is Gregorian. I'm not sure if Google provides this but probably it would be great to support different calendars (Chinesse etc.) as well. That's why culture id should be also persisted.
+
+
+2. Consider what happens when event series has its schedule changed (see google calendar behavior) or when a single event in a series is edited.
+
+    When a particural event in a series is edited then we need to store "the odd one" somewhere in persistance. I proposed Changes.ParticularEvents collection for this case (because more than one can be edited in one particular serie). Before displaying we have to apply all "exceptions" to the results.
+    In the case when we edit all future occurances we have to store all subseries. Before displaying the result we have to apply all changes from Changes.ParticularEvents collection. Next we have to apply sequentially all subseries to the "root one". It seems to be more complex problem.
+    
