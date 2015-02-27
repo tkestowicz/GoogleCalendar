@@ -74,7 +74,7 @@ namespace GoogleCalendar.Domain
             Yearly
         }
 
-        public bool? IsForever { get; protected set; }
+        public bool IsForever { get; protected set; }
 
         public int? EndsAfterTimes { get; protected set; }
 

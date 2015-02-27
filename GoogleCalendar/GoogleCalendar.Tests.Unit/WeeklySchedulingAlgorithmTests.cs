@@ -54,7 +54,7 @@ namespace GoogleCalendar.Tests.Unit
 
             actualSerie.Frequency.ShouldEqual((int) RepeatableEvent.EventFrequency.Weekly);
             actualSerie.Range.StartsAt.ShouldEqual(weeklyEvent.From);
-            actualSerie.Range.EndsAt.Never.Value.ShouldBeTrue();
+            actualSerie.Range.EndsAt.Never.ShouldBeTrue();
             actualSerie.Range.EndsAt.AfterTimes.ShouldBeNull();
             actualSerie.Range.EndsAt.ParticularDate.ShouldBeNull();
             actualSerie.Range.TimeZone.ShouldEqual(weeklyEvent.CreatedBy.Timezone);
@@ -69,6 +69,47 @@ namespace GoogleCalendar.Tests.Unit
             var expectedDayOfTheWeek = (WeeklyEvent.Day) Enum.Parse(typeof (WeeklyEvent.Day), currentDayOfTheWeek, true);
 
             actualSerie.WeeklyParams.Occurences.ShouldEqual((int) expectedDayOfTheWeek);
+        }
+
+        [Fact]
+        public void schedule_weekend_fullday_event___which_ends_after_particular_date___event_serie_is_created()
+        {
+            const int week = 1;
+            const WeeklyEvent.Day weekend = WeeklyEvent.Day.Saturday | WeeklyEvent.Day.Sunday;
+            var weeklyEvent = MakeWeeklyEvent();
+
+            weeklyEvent.EndsAt(DateTime.Today.AddDays(FakeData.NumberData.GetNumber(1, 50)));
+            weeklyEvent.From = DateTime.Today;
+            weeklyEvent.RepeatEvery(week);
+            weeklyEvent.OccursAt(weekend);
+            weeklyEvent.IsFullDay = true;
+
+            scheduler.Schedule(weeklyEvent);
+
+            var actualEvent = storage.Events.First(e => e.AuthorId == weeklyEvent.CreatedBy.Id);
+            var actualSerie = storage.EventSeries.First(e => e.Id == actualEvent.EventSerieId);
+
+            storage.Received().Handle(Arg.Any<RepetableEventPreparedMessage>());
+            storage.Received().Store();
+
+            actualEvent.IsFullDay.ShouldBeTrue();
+            actualEvent.Repeatable.ShouldBeTrue();
+            actualEvent.Range.TimeZone.ShouldEqual(weeklyEvent.CreatedBy.Timezone);
+            actualEvent.Range.Culture.ShouldEqual(weeklyEvent.CreatedBy.Culture);
+
+            actualSerie.Frequency.ShouldEqual((int)RepeatableEvent.EventFrequency.Weekly);
+            actualSerie.Range.StartsAt.ShouldEqual(weeklyEvent.From);
+            actualSerie.Range.EndsAt.Never.ShouldBeFalse();
+            actualSerie.Range.EndsAt.AfterTimes.ShouldBeNull();
+            actualSerie.Range.EndsAt.ParticularDate.Value.ShouldEqual(weeklyEvent.EndsAtParticularDate.Value);
+            actualSerie.Range.TimeZone.ShouldEqual(weeklyEvent.CreatedBy.Timezone);
+            actualSerie.Range.Culture.ShouldEqual(weeklyEvent.CreatedBy.Culture);
+            actualSerie.WeeklyParams.Interval.ShouldEqual(week);
+            actualSerie.DailyParams.ShouldBeNull();
+            actualSerie.MonthlyParams.ShouldBeNull();
+            actualSerie.YearlyParams.ShouldBeNull();
+
+            actualSerie.WeeklyParams.Occurences.ShouldEqual((int)weekend);
         }
 
         private WeeklyEvent MakeWeeklyEvent()

@@ -43,7 +43,7 @@ namespace GoogleCalendar.Domain
 
     public class EndsAt
     {
-        public bool? Never { get; set; }
+        public bool Never { get; set; }
         public int? AfterTimes { get; set; }
         public DateTime? ParticularDate { get; set; }
     }

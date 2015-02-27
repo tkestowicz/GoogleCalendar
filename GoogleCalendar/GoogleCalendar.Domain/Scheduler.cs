@@ -25,7 +25,8 @@ namespace GoogleCalendar.Domain
                     StartsAt = @event.From,
                     EndsAt = new EndsAt()
                     {
-                        Never = @event.IsForever
+                        Never = @event.IsForever,
+                        ParticularDate = @event.EndsAtParticularDate
                     }
                 },
                 WeeklyParams = new WeeklyParams()
@@ -46,7 +47,8 @@ namespace GoogleCalendar.Domain
                 {
                     Culture = @event.CreatedBy.Culture,
                     TimeZone = @event.CreatedBy.Timezone
-                }
+                },
+                IsFullDay = @event.IsFullDay
             };
 
             bus.Publish(new RepetableEventPreparedMessage(preparedEventSerie, preparedEvent));
