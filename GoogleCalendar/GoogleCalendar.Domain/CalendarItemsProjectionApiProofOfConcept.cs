@@ -109,7 +109,7 @@ namespace GoogleCalendar.Domain
         {
             YearlyEventsProjection projection = projector.ProjectEvents(new YearlyEventsQuery
             {
-                CalendarOwner = null,
+                CalendarOwnerId = null,
                 Year = 2014,
             });
         }
@@ -119,7 +119,7 @@ namespace GoogleCalendar.Domain
 
             MonthlyEventsProjection projection = projector.ProjectEvents(new MonthlyEventsQuery
             {
-                CalendarOwner = null,
+                CalendarOwnerId = null,
                 Year = 2014,
                 Month = 1
             });
@@ -130,7 +130,7 @@ namespace GoogleCalendar.Domain
 
             WeeklyEventsProjection projection = projector.ProjectEvents(new WeaklyEventsQuery
             {
-                CalendarOwner = null,
+                CalendarOwnerId = null,
                 Year = 2014,
                 Week = 31
             });
@@ -140,7 +140,7 @@ namespace GoogleCalendar.Domain
         {
             DailyEventsProjection projection = projector.ProjectEvents(new DailyEventsQuery
             {
-                CalendarOwner = null,
+                CalendarOwnerId = null,
                 Day = new DateTime(2014, 4, 12)
             });
         }

@@ -65,6 +65,15 @@ namespace GoogleCalendar.Domain
 
     public abstract class RepeatableEvent : CalendarEvent
     {
+        public enum EventFrequency
+        {
+            OneTime,
+            Daily,
+            Weekly,
+            Monthly,
+            Yearly
+        }
+
         public bool? IsForever { get; protected set; }
 
         public int? EndsAfterTimes { get; protected set; }
@@ -97,6 +106,8 @@ namespace GoogleCalendar.Domain
             EndsAfterTimes = null;
         }
 
+        public abstract EventFrequency Frequency { get; }
+
         public abstract void RepeatEvery(int interval);
 
         public sealed override bool IsRepeable { get { return true; } }
@@ -117,7 +128,25 @@ namespace GoogleCalendar.Domain
             Sunday = 64
         }
 
-        public Day Occurance { get; private set; }
+        private Day occurance = Day.None;
+
+        public Day Occurance
+        {
+            get
+            {
+                if (occurance != Day.None) return occurance;
+                
+                var nameOfStartingWeekDay = Enum.GetName(typeof(DayOfWeek), From.DayOfWeek) ?? Day.None.ToString();
+
+                var day = (Day)Enum.Parse(typeof(Day), nameOfStartingWeekDay, ignoreCase: true);
+
+                OccursAt(day);
+
+                return occurance;
+            }
+            
+            private set { occurance = value; }
+        }
 
         public void OccursAt(Day day)
         {
@@ -125,6 +154,11 @@ namespace GoogleCalendar.Domain
                 throw new ArgumentException("Incorrect value of the day param.", "day");
 
             Occurance = day;
+        }
+
+        public override EventFrequency Frequency
+        {
+            get { return EventFrequency.Weekly; }
         }
 
         public override void RepeatEvery(int interval)
@@ -138,6 +172,11 @@ namespace GoogleCalendar.Domain
 
     public class DailyEvent : RepeatableEvent
     {
+        public override EventFrequency Frequency
+        {
+            get { return EventFrequency.Daily; }
+        }
+
         public override void RepeatEvery(int interval)
         {
             var daysInMonth = DateTime.DaysInMonth(From.Year, From.Month);
@@ -168,6 +207,11 @@ namespace GoogleCalendar.Domain
             Occurance = occurance;
         }
 
+        public override EventFrequency Frequency
+        {
+            get { return EventFrequency.Monthly; }
+        }
+
         public override void RepeatEvery(int interval)
         {
             if(interval < 1 || interval > 12)
@@ -179,6 +223,11 @@ namespace GoogleCalendar.Domain
 
     public class YearlyEvent : RepeatableEvent
     {
+        public override EventFrequency Frequency
+        {
+            get { return EventFrequency.Daily; }
+        }
+
         public override void RepeatEvery(int interval)
         {
             if(interval < 1)
@@ -186,7 +235,7 @@ namespace GoogleCalendar.Domain
         }
     }
 
-    public class BusinessDaysEvent : RepeatableEvent
+    public class BusinessDaysEvent : WeeklyEvent
     {
         public enum RepeatsAt
         {
@@ -204,7 +253,71 @@ namespace GoogleCalendar.Domain
             if(!valueExists || result == RepeatsAt.None)
                     throw new ArgumentException("Incorrect interval given.", "interval");
 
+            switch (result)
+            {
+                case RepeatsAt.AllBusinessDays:
+
+                    OccursAt(Day.Monday | Day.Tuesday | Day.Wednesday | Day.Thursday | Day.Friday);
+
+                    break;
+                case RepeatsAt.EvenBusinessDays:
+
+                    OccursAt(Day.Tuesday | Day.Thursday);
+
+                    break;
+                case RepeatsAt.OddBusinessDays:
+
+                    OccursAt(Day.Monday | Day.Wednesday | Day.Friday);
+
+                    break;
+            }
+
             Interval = interval;
         }
+    }
+
+    public class ReminderInfo
+    {
+        public enum ReminderMethod
+        {
+            NotSet,
+            Email,
+            PopUp
+        }
+
+        public enum Unit
+        {
+            NotSet,
+            Minutes,
+            Hours,
+            Weeks,
+        }
+
+        public ReminderMethod Method { get; private set; }
+
+        public Unit WhenUnit { get; private set; }
+
+        public int WhenValue { get; private set; }
+
+        public void RemindVia(ReminderMethod method)
+        {
+            if (method == ReminderMethod.NotSet)
+                throw new ArgumentException("Incorrect method selected.", "method");
+
+            Method = method;
+        }
+
+        public void RemindInAdvance(Unit unit, int value)
+        {
+            if (unit == Unit.NotSet)
+                throw new ArgumentException("Incorrect unit selected.", "unit");
+
+            if (value < 1)
+                throw new ArgumentException("Value has to be grater than or equal to 1.", "value");
+
+            WhenUnit = unit;
+            WhenValue = value;
+        }
+
     }
 }

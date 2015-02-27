@@ -22,6 +22,8 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("266dda40-8cad-40fa-aca8-2e6e59590ea3")]
 
+[assembly: InternalsVisibleTo("GoogleCalendar.Tests.Unit")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
