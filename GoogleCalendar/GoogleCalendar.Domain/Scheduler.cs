@@ -1,58 +1,55 @@
 using System;
+using System.Linq;
 
 namespace GoogleCalendar.Domain
 {
     public class Scheduler : ISchedulingService
     {
-        private readonly IMessageBus bus;
-
-
-        public Scheduler(IMessageBus bus)
+        private readonly IStorage storage;
+        
+        public Scheduler(IStorage storage)
         {
-            this.bus = bus;
+            this.storage = storage;
         }
 
         public void Schedule(WeeklyEvent @event)
         {
-            var preparedEventSerie = new EventSerie()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Frequency = (int)@event.Frequency,
-                Range = new EventSerieRange()
-                {
-                    Culture = @event.CreatedBy.Culture,
-                    TimeZone = @event.CreatedBy.Timezone,
-                    StartsAt = @event.From,
-                    EndsAt = new EndsAt()
-                    {
-                        Never = @event.IsForever,
-                        ParticularDate = @event.EndsAtParticularDate,
-                        AfterTimes = @event.EndsAfterTimes
-                    }
-                },
-                WeeklyParams = new WeeklyParams()
-                {
-                    Interval = @event.Interval,
-                    Occurences = (int) @event.Occurance
-                }
-            };
+            var preparedEventSerie = @event.ToEventSerieDocument();
+            var preparedEvent = @event.ToEventDocument(preparedEventSerie.Id);
 
-            var preparedEvent = new Event
-            {
-                AuthorId = @event.CreatedBy.Id,
-                Id = Guid.NewGuid().ToString(),
-                EventSerieId = preparedEventSerie.Id,
-                Name = @event.Name,
-                Repeatable = @event.IsRepeable,
-                Range = new OneTimeEventRange()
-                {
-                    Culture = @event.CreatedBy.Culture,
-                    TimeZone = @event.CreatedBy.Timezone
-                },
-                IsFullDay = @event.IsFullDay
-            };
+            storage.Events.Add(preparedEvent);
+            storage.EventSeries.Add(preparedEventSerie);
+            storage.Store();
+        }
 
-            bus.Publish(new RepetableEventPreparedMessage(preparedEventSerie, preparedEvent));
+        public void UpdateScheduled(UpdateScheduledEvent<WeeklyEvent> update)
+        {
+            var @event = storage
+                .Events
+                .FirstOrDefault(e => e.Id == update.EventId && string.IsNullOrEmpty(e.EventSerieId) == false);
+
+            if(@event == null)
+                throw new ArgumentException("Series event with given id does not exist.");
+
+            var eventSerie = storage.EventSeries.First(e => e.Id == @event.EventSerieId);
+
+            switch (update.UpdateStrategy)
+            {
+                case UpdateScheduledEvent<WeeklyEvent>.ApplyTo.ParticularEvent:
+
+                    UpdateParticularEvent(eventSerie, update.Changes);
+
+                    break;
+            }
+
+            storage.Store();
+        }
+
+        private void UpdateParticularEvent(EventSerie serie, WeeklyEvent changes)
+        {
+            var @event = changes.ToEventDocument();
+
+            serie.Changes.ParticularEvents.Add(@event);
         }
     }
 }

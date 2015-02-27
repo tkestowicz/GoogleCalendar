@@ -42,7 +42,8 @@
     <Compile Include="CalendarItemsProjectionApiProofOfConcept.cs" />
     <Compile Include="CoreTypes.cs" />
     <Compile Include="DomainModel.cs" />
-    <Compile Include="Messages.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="MessagesAndCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler.cs" />
     <Compile Include="Schema.cs" />

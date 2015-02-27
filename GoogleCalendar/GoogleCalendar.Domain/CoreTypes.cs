@@ -6,20 +6,7 @@ using System.Threading.Tasks;
 
 namespace GoogleCalendar.Domain
 {
-    public interface IHandler<in TMessage>
-        where TMessage : IMessage
-    {
-        void Handle(TMessage message);
-    }
-
-    public interface IMessageBus
-    {
-        void Publish<TMessage>(TMessage message)
-            where TMessage : IMessage;
-    }
-
     public interface IStorage
-        : IHandler<RepetableEventPreparedMessage>
     {
         ICollection<Author> Authors { get; }
 
@@ -30,10 +17,12 @@ namespace GoogleCalendar.Domain
         void Store();
     }
 
-    public interface ISchedulerFor<in TEvent>
+    public interface ISchedulerFor<TEvent>
         where TEvent : CalendarEvent
     {
         void Schedule(TEvent @event);
+
+        void UpdateScheduled(UpdateScheduledEvent<TEvent> update);
     }
 
     public interface ISchedulingService
