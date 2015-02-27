@@ -26,7 +26,8 @@ namespace GoogleCalendar.Domain
                     EndsAt = new EndsAt()
                     {
                         Never = @event.IsForever,
-                        ParticularDate = @event.EndsAtParticularDate
+                        ParticularDate = @event.EndsAtParticularDate,
+                        AfterTimes = @event.EndsAfterTimes
                     }
                 },
                 WeeklyParams = new WeeklyParams()

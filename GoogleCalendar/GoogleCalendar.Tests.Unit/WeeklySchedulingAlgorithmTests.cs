@@ -112,6 +112,48 @@ namespace GoogleCalendar.Tests.Unit
             actualSerie.WeeklyParams.Occurences.ShouldEqual((int)weekend);
         }
 
+        [Fact]
+        public void schedule_weekdays_event_every_n_weeks__which_ends_after_few_occurances__event_serie_is_created()
+        {
+            var weeksInterval = FakeData.NumberData.GetNumber(1, 10);
+            const WeeklyEvent.Day weekdays = WeeklyEvent.Day.Monday | WeeklyEvent.Day.Tuesday
+                | WeeklyEvent.Day.Wednesday | WeeklyEvent.Day.Thursday
+                | WeeklyEvent.Day.Friday;
+            var weeklyEvent = MakeWeeklyEvent();
+
+            weeklyEvent.EndsAfter(FakeData.NumberData.GetNumber(1, 10));
+            weeklyEvent.From = DateTime.Today;
+            weeklyEvent.RepeatEvery(weeksInterval);
+            weeklyEvent.OccursAt(weekdays);
+
+            scheduler.Schedule(weeklyEvent);
+
+            var actualEvent = storage.Events.First(e => e.AuthorId == weeklyEvent.CreatedBy.Id);
+            var actualSerie = storage.EventSeries.First(e => e.Id == actualEvent.EventSerieId);
+
+            storage.Received().Handle(Arg.Any<RepetableEventPreparedMessage>());
+            storage.Received().Store();
+
+            actualEvent.IsFullDay.ShouldBeFalse();
+            actualEvent.Repeatable.ShouldBeTrue();
+            actualEvent.Range.TimeZone.ShouldEqual(weeklyEvent.CreatedBy.Timezone);
+            actualEvent.Range.Culture.ShouldEqual(weeklyEvent.CreatedBy.Culture);
+
+            actualSerie.Frequency.ShouldEqual((int)RepeatableEvent.EventFrequency.Weekly);
+            actualSerie.Range.StartsAt.ShouldEqual(weeklyEvent.From);
+            actualSerie.Range.EndsAt.Never.ShouldBeFalse();
+            actualSerie.Range.EndsAt.AfterTimes.ShouldEqual(weeklyEvent.EndsAfterTimes);
+            actualSerie.Range.EndsAt.ParticularDate.ShouldBeNull();
+            actualSerie.Range.TimeZone.ShouldEqual(weeklyEvent.CreatedBy.Timezone);
+            actualSerie.Range.Culture.ShouldEqual(weeklyEvent.CreatedBy.Culture);
+            actualSerie.WeeklyParams.Interval.ShouldEqual(weeksInterval);
+            actualSerie.DailyParams.ShouldBeNull();
+            actualSerie.MonthlyParams.ShouldBeNull();
+            actualSerie.YearlyParams.ShouldBeNull();
+
+            actualSerie.WeeklyParams.Occurences.ShouldEqual((int)weekdays);
+        }
+
         private WeeklyEvent MakeWeeklyEvent()
         {
             return new WeeklyEvent()
