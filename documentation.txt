@@ -128,4 +128,19 @@ Thougths & Ideas
 
     When a particural event in a series is edited then we need to store "the odd one" somewhere in persistance. I proposed Changes.ParticularEvents collection for this case (because more than one can be edited in one particular serie). Before displaying we have to apply all "exceptions" to the results.
     In the case when we edit all future occurances we have to store all subseries. Before displaying the result we have to apply all changes from Changes.ParticularEvents collection. Next we have to apply sequentially all subseries to the "root one". It seems to be more complex problem.
-    
+
+
+3. Events projection
+
+User always displays events from specific range eg. from one week. That's why a projection algorithm can be based on "on demand" events generation and it's not hard to deal with forever events. First it selects all events and event series for given range from the storage. Next all retrived data is passed to the events generator which produces one-time/repeatable calendar events. Then produced events are passed back to the projection alghoritm which applies transformations for given calendar view (daily, weekly, etc.). After all the prepared projection is returned to the UI.
+
+4. Reminder
+
+Reminders algorithm should be fired as a deamon and may consist of following steps:
+
+1. Take all events with reminders which should occur in next n hours/days/weeks.
+2. Pass the data to the events generator algorithm.
+3. Create reminders based on events generated in point 2.
+4. After n hours/days/weeks go to 1.
+
+When user schedules/reschedules event in the calendar we need to check if scheduled reminders require a change.
